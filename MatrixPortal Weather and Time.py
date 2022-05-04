@@ -79,7 +79,7 @@ if UNITS == "imperial" or UNITS == "metric":
 print("gfx loaded")
 localtime_refresh = None
 weather_refresh = None
-
+dtemptime = True       # track whether temp or time is showing
 rtime = rtc.RTC()
 
 while True:
@@ -88,11 +88,7 @@ while True:
         try:
             print("Getting time from internet!")
             network.get_local_time()
-            ctime = rtime.datetime
             localtime_refresh = time.monotonic()
-            # make next minute update very close to 00 seconds
-            time_refresh = localtime_refresh - ctime.tm_sec
-            dmins = int(ctime.tm_min)   # minute counter, since tm_min is read only
         except RuntimeError as e:
             print("Some error occured, retrying! -", e)
             continue
@@ -108,25 +104,19 @@ while True:
             print("Some error occured, retrying! -", e)
             continue
 
+    # TIME to add Time to MatrixPortal Weather
     # update time display, swap time and temp every ten seconds
-    monotime = time.monotonic()
-    dtemptime = (monotime // 10) % 2
-    if (monotime - time_refresh) > 59:
-        dmins += 1
-        if dmins > 59:             # increment and check for overflow
-            dmins = 0              # fix it
-        time_refresh = monotime    # ready for next minute
-
-    # tens digit even ->temp (dtemptime==True), odd->time (dtemptime==False)
-    testvar = monotime // 10 % 2
-    if dtemptime != monotime:     # changed?
-        if dtemptime:             # if it was temp (even)..
-            dtemptime = False     # it's now time
-            gfx.temp_text.x = 16
-            gfx.temp_text.text = f"{ctime.tm_hour}:{dmins:02}"
+    ctime = rtime.datetime   #update struct_time every loop
+    
+    # tens digit even->temp, odd->time
+    if dtemptime != ctime.tm_sec // 10 % 2:   # changed?
+        if dtemptime:                     # if it was temp (even)..
+            dtemptime = False             # it's now time
+            gfx.temp_text.x = 16          # give time some room
+            gfx.temp_text.text = f"{ctime.tm_hour}:{ctime.tm_min:02}"
         else:
-            dtemptime = True       # back to temperature
-            gfx.temp_text.x = 20
+            dtemptime = True              # back to temperature
+            gfx.temp_text.x = 20          # re-position temp
             gfx.temp_text.text = f'{int(value["main"]["temp"])}{tunit}'
 
     gfx.scroll_next_label()
