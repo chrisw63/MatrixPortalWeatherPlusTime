@@ -1,5 +1,5 @@
 # MatrixPortalWeatherPlusTime
-Modified Adafruit MatrixPortal Weather to add Time.
+Modified Adafruit MatrixPortal Weather to add Time.  For the original ADABOX 64x32 LED matrix and MatrixPortal M4 board.  Follow the install instructions at https://learn.adafruit.com/weather-display-matrix, then replace code.py with this code.
 
 Temperature and 24 hr clock are swapped every 10 seconds.
 
